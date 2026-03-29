@@ -27,8 +27,8 @@ COPY --from=build /usr/local/bin /usr/local/bin
 COPY . .
 
 # Create non-root user
-# RUN useradd -m -u 1000 appuser && chown -R appuser:appuser /app
-# USER appuser
+ RUN useradd -m -u 1000 bookshop && chown -R bookshop:bookshop /app
+ USER bookshop
 
 EXPOSE 8080
 

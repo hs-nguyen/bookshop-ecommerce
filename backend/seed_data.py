@@ -2,10 +2,16 @@
 Seed data script for bookshop database.
 Run with: python manage.py shell < seed_data.py
 """
+import os
+import django
+django.setup()
+
 from books.models import Category, Book
 from decimal import Decimal
 
 print("Starting database seeding...")
+
+os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'bookshop.settings')
 
 # Clear existing data
 print("\nClearing existing data...")
