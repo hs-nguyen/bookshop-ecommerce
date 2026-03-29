@@ -7,8 +7,8 @@ on:
 env: 
   AWS_REGION: ap-southeast-1
   ECR_REPOSITORY: fcaj-bookshop-ecr
-  ECR_REGISTRY: ${{ variables.AWS_ACCOUNT_ID }}.dkr.ecr.ap-southeast-1.amazonaws.com
-  AWS_ACCOUNT_ID: ${{ variables.AWS_ACCOUNT_ID }}
+  ECR_REGISTRY: ${{ inputs.AWS_ACCOUNT_ID }}.dkr.ecr.ap-southeast-1.amazonaws.com
+  AWS_ACCOUNT_ID: ${{ inputs.AWS_ACCOUNT_ID }}
 
 jobs:
   build:
