@@ -36,9 +36,7 @@ jobs:
     
     - name: Build docker image
       run: |
-        docker build -t ${{ env.ECR_REPOSITORY }}:latest . \
-        -f backend/Dockerfile \
-        ./backend/ 
+        docker build -f /backend/Dockerfile -t ${{ env.ECR_REPOSITORY }}:latest ./backend/
     
     - name: Tag and push docker image to ECR
       run: |
