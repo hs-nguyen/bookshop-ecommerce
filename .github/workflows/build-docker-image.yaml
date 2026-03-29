@@ -1,0 +1,33 @@
+name: Build Docker Image
+on: 
+  push:
+    branches:
+      - main
+    paths:
+      - 'backend/**'
+      - 'Dockerfile'
+jobs:
+  deploy:
+    name: Build and Push Docker Image
+    runs-on: ubuntu-lastest
+    permissions:
+      id-token: write
+      contents: read
+    steps:
+      - name: checkout code
+        uses: actions/checkout@v4
+      
+      - name: Log in to ECR
+        id: login-ecr
+        run: 
+          aws ecr get-login-password --region ap-southeast-1 | docker login --username AWS --password-stdin 891377055161.dkr.ecr.ap-southeast-1.amazonaws.com
+      
+      - name: Build and Push Docker Image
+        env:
+          AWS_REGION: ap-southeast-1
+          ECR_REPOSITORY: fcaj-bookshop-ecr
+          IMAGE_TAG: latest
+        run:
+          docker build - t ${{ env.ECR_REPOSITORY }}:${{ env.IMAGE_TAG }} .
+          docker push ${{ env.ECR_REPOSITORY }}:${{ env.IMAGE_TAG }}
+
