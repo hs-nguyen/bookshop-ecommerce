@@ -36,20 +36,18 @@ jobs:
         id: login-ecr
         uses: aws-actions/amazon-ecr-login@v2
 
-      - name: Build and push Docker image
+      - name: Build image 
         run: |
           docker build \
-            -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG \
-            -t $ECR_REGISTRY/$ECR_REPOSITORY:latest \
+            -t ${ECR_REPOSITORY}:${IMAGE_TAG} \
+            -t ${ECR_REPOSITORY}:latest \
             -f ./backend/Dockerfile \
             ./backend
-          
-          docker tag $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG $ECR_REGISTRY/$ECR_REPOSITORY:latest
 
+          docker tag ${ECR_REPOSITORY}:${IMAGE_TAG}/${ECR_REGISTRY}/${ECR_REPOSITORY}:latest
+      - name: Push image to ECR
+        run: | 
           docker push ${ECR_REGISTRY}/${ECR_REPOSITORY}:${IMAGE_TAG}
-          docker push ${ECR_REGISTRY}/${ECR_REPOSITORY}:latest
-
-          echo "✅ Pushed: ${ECR_REGISTRY}/${ECR_REPOSITORY}:${IMAGE_TAG}"
   # deploy:
   #   name: Deploy to ECS Cluster
   #   runs-on: ubuntu-latest
