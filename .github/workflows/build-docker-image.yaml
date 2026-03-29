@@ -3,10 +3,13 @@ on:
   push:
     branches:
       - main
+    paths:
+      - 'backend/*'
+      - 'Dockerfile'
 jobs:
   deploy:
     name: Build and Push Docker Image
-    runs-on: ubuntu-lastest
+    runs-on: ubuntu-latest
     permissions:
       id-token: write
       contents: read
