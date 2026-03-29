@@ -1,52 +1,41 @@
 name: Build Docker Image
-
-on:
+on: 
   push:
     branches:
       - main
     paths:
       - 'backend/**'
       - 'Dockerfile'
-
 env:
   AWS_REGION: ap-southeast-1
   ECR_REPOSITORY: fcaj-bookshop-ecr
-
+  IMAGE_TAG: latest
 jobs:
-  build:
+  deploy:
     name: Build and Push Docker Image
     runs-on: ubuntu-latest
     permissions:
-      id-token: write   # Required for OIDC role assumption
+      id-token: write
       contents: read
-
     steps:
-      - name: Checkout code
+      - name: checkout code
         uses: actions/checkout@v4
+      
 
       - name: Configure AWS credentials
-        uses: aws-actions/configure-aws-credentials@v4   # ✅ upgraded
+        uses: aws-actions/configure-aws-credentials@v2
         with:
           aws-region: ${{ env.AWS_REGION }}
           role-to-assume: arn:aws:iam::891377055161:role/GithubActionsRole
-          role-session-name: GithubActionsSession
-
-      - name: Login to Amazon ECR
+          role-session-name: GithubActionsRole 
+      - name: Log in to ECR
         id: login-ecr
         uses: aws-actions/amazon-ecr-login@v2
-
-      - name: Build and push Docker image
-        env:
-          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
-          IMAGE_TAG: ${{ github.sha }}             # ✅ unique per commit
+      
+      - name: Build and Push Docker Image
         run: |
-          docker build \
-            -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG \
-            -t $ECR_REGISTRY/$ECR_REPOSITORY:latest \
-            -f backend/Dockerfile \               # ✅ explicit Dockerfile path
-            backend/                              # ✅ build context
+          docker build -t fcaj-bookshop-ecr .
+          docker tag fcaj-bookshop-ecr:latest 891377055161.dkr.ecr.ap-southeast-1.amazonaws.com/fcaj-bookshop-ecr:latest
+          docker push 891377055161.dkr.ecr.ap-southeast-1.amazonaws.com/fcaj-bookshop-ecr:latest
+          echo "build and push docker image successfully"
 
-          docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
-          docker push $ECR_REGISTRY/$ECR_REPOSITORY:latest
-
-          echo "✅ Pushed: $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG"
