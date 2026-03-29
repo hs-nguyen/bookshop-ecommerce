@@ -30,4 +30,5 @@ jobs:
         run:
           docker build - t ${{ env.ECR_REPOSITORY }}:${{ env.IMAGE_TAG }} .
           docker push ${{ env.ECR_REPOSITORY }}:${{ env.IMAGE_TAG }}
+          echo "build and push docker image successfully"
 
