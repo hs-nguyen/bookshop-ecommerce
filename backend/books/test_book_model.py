@@ -12,7 +12,7 @@ print("Testing Book model validation...")
 print("\n1. Creating test category...")
 category = Category(name="Test Fiction", description="Test category")
 category.save()
-print("✓ Category created successfull")
+print("✓ Category created successfull-v1")
 
 # Test 2: Create a valid book
 print("\n2. Creating valid book...")
