@@ -34,7 +34,7 @@ class BookModelTest(TransactionTestCase):
     def test_book_price_validation_positive(self):
         """Test that price must be positive."""
         book = Book(
-            title="Test Book",
+            title="Test Books",
             author="Test Author",
             description="Test description",
             price=Decimal("-10.00"),
