@@ -44,7 +44,7 @@ jobs:
             -f ./backend/Dockerfile \
             ./backend
 
-          docker tag ${ECR_REPOSITORY}:${IMAGE_TAG}/${ECR_REGISTRY}/${ECR_REPOSITORY}:latest
+          docker tag ${ECR_REPOSITORY}:${IMAGE_TAG} ${ECR_REGISTRY}/${ECR_REPOSITORY}:latest
       - name: Push image to ECR
         run: | 
           docker push ${ECR_REGISTRY}/${ECR_REPOSITORY}:${IMAGE_TAG}
