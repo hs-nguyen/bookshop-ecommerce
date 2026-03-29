@@ -6,6 +6,10 @@ on:
     paths:
       - 'backend/**'
       - 'Dockerfile'
+env:
+  AWS_REGION: ap-southeast-1
+  ECR_REPOSITORY: fcaj-bookshop-ecr
+  IMAGE_TAG: latest
 jobs:
   deploy:
     name: Build and Push Docker Image
@@ -22,10 +26,6 @@ jobs:
         uses: aws-actions/amazon-ecr-login@v2
       
       - name: Build and Push Docker Image
-        env:
-          AWS_REGION: ap-southeast-1
-          ECR_REPOSITORY: fcaj-bookshop-ecr
-          IMAGE_TAG: latest
         run:
           docker build - t ${{ env.ECR_REPOSITORY }}:${{ env.IMAGE_TAG }} .
           docker push ${{ env.ECR_REPOSITORY }}:${{ env.IMAGE_TAG }}
