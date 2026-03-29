@@ -48,6 +48,7 @@ jobs:
       - name: Push image to ECR
         run: | 
           docker push ${ECR_REGISTRY}/${ECR_REPOSITORY}:${IMAGE_TAG}
+          docker push ${ECR_REGISTRY}/${ECR_REPOSITORY}:latest
   # deploy:
   #   name: Deploy to ECS Cluster
   #   runs-on: ubuntu-latest
