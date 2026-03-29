@@ -10,7 +10,7 @@ on:
 env:
   AWS_REGION: ap-southeast-1
   ECR_REPOSITORY: fcaj-bookshop-ecr
-  ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+  ECR_REGISTRY: 891377055161.dkr.ecr.ap-southeast-1.amazonaws.com
   IMAGE_TAG: ${{ github.sha }}
 
 jobs:
