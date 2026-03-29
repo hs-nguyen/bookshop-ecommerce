@@ -11,17 +11,24 @@ env:
   AWS_REGION: ap-southeast-1
   ECR_REPOSITORY: fcaj-bookshop-ecr
   ECR_REGISTRY: 891377055161.dkr.ecr.ap-southeast-1.amazonaws.com
-  IMAGE_TAG: ${{ github.sha }}
   TASK_FAMILY: bookshop-task
-  CLUSTER_NAME: fcaj-bookshop-cluster
+  CONTAINER_NAME: bookshop-container     # ← must match name in your task definition
+  ECS_CLUSTER: fcaj-bookshop-cluster
+  ECS_SERVICE: fcaj-bookshop-service
 
 jobs:
+  # ─────────────────────────────────────────
+  # JOB 1: Build & Push
+  # ─────────────────────────────────────────
   build:
     name: Build and Push Docker Image
     runs-on: ubuntu-latest
     permissions:
       id-token: write
       contents: read
+
+    outputs:
+      image: ${{ steps.build-image.outputs.image }}   # ✅ pass full image URI to deploy job
 
     steps:
       - name: Checkout code
@@ -38,17 +45,27 @@ jobs:
         id: login-ecr
         uses: aws-actions/amazon-ecr-login@v2
 
-      - name: Build image 
+      - name: Build and push image
+        id: build-image
         run: |
+          IMAGE_TAG=${{ github.sha }}     # ✅ github.sha must be inside a step
+
           docker build \
-            -t ${ECR_REPOSITORY}:latest \
+            -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG \
+            -t $ECR_REGISTRY/$ECR_REPOSITORY:latest \
             -f ./backend/Dockerfile \
             ./backend
 
-          docker tag ${ECR_REPOSITORY}:latest ${ECR_REGISTRY}/${ECR_REPOSITORY}:latest
-      - name: Push image to ECR
-        run: | 
-          docker push ${ECR_REGISTRY}/${ECR_REPOSITORY}:latest
+          docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
+          docker push $ECR_REGISTRY/$ECR_REPOSITORY:latest
+
+          # ✅ Export full image URI for deploy job
+          echo "image=$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG" >> $GITHUB_OUTPUT
+          echo "✅ Pushed: $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG"
+
+  # ─────────────────────────────────────────
+  # JOB 2: Deploy to ECS
+  # ─────────────────────────────────────────
   deploy:
     name: Deploy to ECS Cluster
     runs-on: ubuntu-latest
@@ -56,7 +73,11 @@ jobs:
     permissions:
       id-token: write
       contents: read
+
     steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
@@ -64,17 +85,27 @@ jobs:
           role-to-assume: arn:aws:iam::891377055161:role/GithubActionsRole
           role-session-name: GithubActionsSession
 
-      - name: Deploy to ECS
+      - name: Download current task definition  # ✅ fetch JSON from AWS
         run: |
-          aws ecs update-task-definition \
-            --family ${TASK_FAMILY} \
-            --container-images bookshop-container=${ECR_REGISTRY}/${ECR_REPOSITORY}:latest
+          aws ecs describe-task-definition \
+            --task-definition ${{ env.TASK_FAMILY }} \
+            --query taskDefinition \
+            > task-def.json
 
-          aws ecs create-service \ 
-            --cluster ${CLUSTER_NAME} \
-            --service-name fcaj-bookshop-service \
-            --task-definition ${TASK_FAMILY} \
-            --desired-count 2 \
-            --launch-type FARGATE \
-            --network-configuration 'awsvpcConfiguration={subnets=["subnet-04d0d419244f8a2bb" , "subnet-04b35af3dac2ca51a"],securityGroups=["sg-0829f4a93bc89746b"],assignPublicIp="ENABLED"}'
+      - name: Render new task definition        # ✅ inject new image into JSON
+        id: render-task
+        uses: aws-actions/amazon-ecs-render-task-definition@v1
+        with:
+          task-definition: task-def.json
+          container-name: ${{ env.CONTAINER_NAME }}
+          image: ${{ needs.build.outputs.image }}
 
+      - name: Deploy to ECS service             # ✅ pass JSON file, not task name
+        uses: aws-actions/amazon-ecs-deploy-task-definition@v2
+        timeout-minutes: 10
+        with:
+          task-definition: ${{ steps.render-task.outputs.task-definition }}
+          service: ${{ env.ECS_SERVICE }}
+          cluster: ${{ env.ECS_CLUSTER }}
+          wait-for-service-stability: true
+          force-new-deployment: true
