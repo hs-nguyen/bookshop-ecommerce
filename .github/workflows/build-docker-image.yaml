@@ -34,7 +34,7 @@ jobs:
       
       - name: Build and Push Docker Image
         run: |
-          docker build -t fcaj-bookshop-ecr .
+          docker build -t fcaj-bookshop-ecr -f backend/Dockerfile .
           docker tag fcaj-bookshop-ecr:latest 891377055161.dkr.ecr.ap-southeast-1.amazonaws.com/fcaj-bookshop-ecr:latest
           docker push 891377055161.dkr.ecr.ap-southeast-1.amazonaws.com/fcaj-bookshop-ecr:latest
           echo "build and push docker image successfully"
