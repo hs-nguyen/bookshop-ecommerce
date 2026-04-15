@@ -1,0 +1,4 @@
+variable "django_secret_key" {
+	type = string
+	sensitive = true
+}

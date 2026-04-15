@@ -47,3 +47,8 @@ dist/
 .env.development.local
 .env.test.local
 .env.production.local
+
+# Terraform
+.terraform/
+.terraform.tfvars
+*.tfstate

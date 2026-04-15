@@ -9,19 +9,20 @@ env:
   ECR_REPOSITORY: fcaj-bookshop-ecr
   ECR_REGISTRY: ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.ap-southeast-1.amazonaws.com
   AWS_ACCOUNT_ID: ${{ secrets.AWS_ACCOUNT_ID }}
+  TASK_FAMILY: fcaj-bookshop-backend-task
+  SERVICE_NAME: fcaj-bookshop-backend-service
 
 jobs:
-  build:
-    name: Build and Push Docker Image
+  deploy:
+    name: Deploy ECR
     runs-on: ubuntu-latest
     permissions:
       id-token: write
       contents: read
-
-    steps:
-    - name: checkout code
-      uses: actions/checkout@v4
     
+    steps:
+    - uses: actions/checkout@v4
+
     - name: Configure AWS Credentials
       uses: aws-actions/configure-aws-credentials@v4
       with:
@@ -30,20 +31,100 @@ jobs:
         aws-region: ${{ env.AWS_REGION }}
         role-session-name: GithubActionsRole
     
-    - name: Login to ECR
-      id: login-ecr
-      uses: aws-actions/amazon-ecr-login@v2
-    
-    - name: Build docker image
+    - name: Terraform Init and Deploy ECR
+      working-directory: ./terraform
       run: |
-        docker build -f backend/Dockerfile -t ${{ env.ECR_REPOSITORY }}:latest ./backend/
+        terraform init
+        terraform apply -target=module.ecr -auto-approve
+        echo "Terraform deploy successfully"
+
+  # build:
+  #   name: Build and Push Docker Image
+  #   runs-on: ubuntu-latest
+  #   permissions:
+  #     id-token: write
+  #     contents: read
+
+  #   steps:
+  #   - name: checkout code
+  #     uses: actions/checkout@v4
     
-    - name: Tag and push docker image to ECR
-      run: |
-        docker tag ${{ env.ECR_REPOSITORY }}:latest ${{ env.ECR_REGISTRY }}/${{ env.ECR_REPOSITORY }}:latest
-        docker push ${{ env.ECR_REGISTRY }}/${{ env.ECR_REPOSITORY }}:latest
-    - name: output success message
-      run: echo "Docker image built and pushed to ECR successfully!"
+  #   - name: Configure AWS Credentials
+  #     uses: aws-actions/configure-aws-credentials@v4
+  #     with:
+  #       oidc-token: ${{ secrets.AWS_OIDC_TOKEN }}
+  #       role-to-assume: arn:aws:iam::${{ secrets.AWS_ACCOUNT_ID }}:role/GithubActionsRole
+  #       aws-region: ${{ env.AWS_REGION }}
+  #       role-session-name: GithubActionsRole
+    
+  #   - name: Login to ECR
+  #     id: login-ecr
+  #     uses: aws-actions/amazon-ecr-login@v2
+    
+  #   - name: Build docker image
+  #     run: |
+  #       docker build -f backend/Dockerfile -t ${{ env.ECR_REPOSITORY }}:latest ./backend/
+    
+  #   - name: Tag and push docker image to ECR
+  #     run: |
+  #       docker tag ${{ env.ECR_REPOSITORY }}:latest ${{ env.ECR_REGISTRY }}/${{ env.ECR_REPOSITORY }}:latest
+  #       docker push ${{ env.ECR_REGISTRY }}/${{ env.ECR_REPOSITORY }}:latest
+  #   - name: output success message
+  #     run: echo "Docker image built and pushed to ECR successfully!"
+  
+  # deploy:
+  #   name: Deploy to ECS Cluster
+  #   runs-on: ubuntu-latest
+  #   permissions:
+  #     id-token: write
+  #     contents: read
+    
+  #   steps:
+  #   - name: checkout code
+  #     uses: actions/checkout@v4
+
+  #   - name: Configure AWS Credentials
+  #     uses: aws-actions/configure-aws-credentials@v4
+  #     with:
+  #       oidc-token: ${{ secrets.AWS_OIDC_TOKEN }}
+  #       role-to-assume: arn:aws:iam::${{ secrets.AWS_ACCOUNT_ID }}:role/GithubActionsRole
+  #       aws-region: ${{ env.AWS_REGION }}
+  #       role-session-name: GithubActionsRole
+    
+  #   - name: Update ECS Task Definitions
+  #     run: |
+  #       # Get current Task Definitions
+  #       TASK_DEFINITION=$(aws ecs describe-task-definition \
+  #         --task-definition ${{ env.TASK_FAMILY }} \
+  #         --region ${{ env.AWS_REGION }}
+  #       )
+
+  #       # Create new task definition with updated image
+  #       echo "$TASK_DEFINITION" | jq '.taskDefinition | del(.taskDefinitionArn) | del(.revision) | del(.status) | del(.requiresAttributes) | del(.compatibilities) | del(.registeredAt) | del(.registeredBy)' > task-definition.json
+
+  #       # Update container image
+  #       cat task-definition.json | jq --arg IMAGE_URI "${ECR_REGISTRY}/${ECR_REPOSITORY}:latest" '.taskDefinition.containerDefinitions[0].image = $IMAGE_URI' > task-definition-updated.json
+
+  #       # Register new task definition
+  #       aws ecs register-task-definition \
+  #         --cli-input-json file://task-definition-updated.json \
+  #         --region ${{ env.AWS_REGION }}
+
+  #       # Update service with new task definition
+  #       aws ecs update-service \
+  #         --cluster fcaj-bookshop-cluster \
+  #         --service ${{ env.SERVICE_NAME }} \
+  #         --task-definition ${{ env.TASK_FAMILY }} \
+  #         --region ${{ env.AWS_REGION }} \
+  #         --force-new-deployment
+        
+  #       # Set desired count to 1
+  #       aws ecs update-service \
+  #         --cluster fcaj-bookshop-cluster \
+  #         --service ${{ env.SERVICE_NAME }} \
+  #         --desired-count 1 \
+  #         --region ${{ env.AWS_REGION }}
+
 
 
 

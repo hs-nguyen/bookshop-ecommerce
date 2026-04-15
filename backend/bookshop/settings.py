@@ -80,7 +80,7 @@ DATABASES = {
         'NAME': os.getenv('DB_NAME', 'bookshop_db'),
         'USER': os.getenv('DB_USER', 'postgres'),
         'PASSWORD': os.getenv('DB_PASSWORD', 'postgres'),
-        'HOST': os.getenv('DB_HOST', 'localhost'),
+        'HOST': os.getenv('DB_URL', 'localhost'),
         'PORT': os.getenv('DB_PORT', '5432'),
     }
 }
@@ -170,7 +170,7 @@ CORS_ALLOW_CREDENTIALS = True
 
 # Security settings for production
 if not DEBUG:
-    SECURE_SSL_REDIRECT = True
+    SECURE_SSL_REDIRECT = False  # Set to True if using HTTPS
     SESSION_COOKIE_SECURE = True
     CSRF_COOKIE_SECURE = True
     SECURE_BROWSER_XSS_FILTER = True
