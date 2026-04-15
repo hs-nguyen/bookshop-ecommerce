@@ -13,7 +13,7 @@ env:
   SERVICE_NAME: fcaj-bookshop-backend-service
 
 jobs:
-  deploy:
+  bootstrap:
     name: Deploy ECR
     runs-on: ubuntu-latest
     permissions:
@@ -39,7 +39,7 @@ jobs:
         echo "Terraform deploy successfully"
 
   # build:
-  #   name: Build and Push Docker Image
+  #   name: Build and Push Dock er Image
   #   runs-on: ubuntu-latest
   #   permissions:
   #     id-token: write
