@@ -53,9 +53,9 @@ module "alb" {
 }
 
 module "secrets" {
-  source            = "./modules/secrets"
-  rds_password      = module.rds.rds_password
-  depends_on        = [module.vpc, module.security, module.rds, module.alb]
+  source       = "./modules/secrets"
+  rds_password = module.rds.rds_password
+  depends_on   = [module.vpc, module.security, module.rds, module.alb]
 }
 
 module "ecr" {
@@ -67,16 +67,16 @@ module "iam" {
   depends_on = [module.vpc, module.security, module.rds, module.alb, module.secrets, module.ecr]
 }
 module "ecs" {
-  source                    = "./modules/ecs"
-  ecr_repository_url        = module.ecr.repository_url
-  region                    = var.region
-  target_group_arn          = module.alb.target_group_arn
-  secret_arn                = module.secrets.arn
-  cors_allowed_origins      = "http://localhost:3000"
-  ecs_security_group_id     = module.security.fcaj_bookshop_ecs_sg_id
-  private_subnets           = module.vpc.private_subnets
-  rds_endpoint              = module.rds.rds_endpoint
-  execution_role_arn        = module.iam.ecs_task_execution_role_arn
-  task_role_arn             = module.iam.ecs_task_role_arn
-  depends_on                = [module.vpc, module.security, module.rds, module.alb, module.secrets, module.ecr, module.iam]
+  source                = "./modules/ecs"
+  ecr_repository_url    = module.ecr.repository_url
+  region                = var.region
+  target_group_arn      = module.alb.target_group_arn
+  secret_arn            = module.secrets.arn
+  cors_allowed_origins  = "http://localhost:3000"
+  ecs_security_group_id = module.security.fcaj_bookshop_ecs_sg_id
+  private_subnets       = module.vpc.private_subnets
+  rds_endpoint          = module.rds.rds_endpoint
+  execution_role_arn    = module.iam.ecs_task_execution_role_arn
+  task_role_arn         = module.iam.ecs_task_role_arn
+  depends_on            = [module.vpc, module.security, module.rds, module.alb, module.secrets, module.ecr, module.iam]
 }

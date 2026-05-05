@@ -8,7 +8,7 @@ on:
   
 env:
   AWS_REGION: ap-southeast-1
-  CLUSTER: fcaj-bookshop-ecs-cluster
+  CLUSTER: fcaj-bookshop-cluster
   TASK_FAMILY: fcaj-bookshop-db-migration-task
 
 jobs:
