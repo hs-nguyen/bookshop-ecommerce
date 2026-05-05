@@ -1,11 +1,11 @@
 locals {
-  project = "fcaj-bookshop-ecommerce"
+  project     = "fcaj-bookshop-ecommerce"
   environment = "dev"
-  owner = "Nguyen Huu Sang"
+  owner       = "Nguyen Huu Sang"
 }
 
 variable "region" {
-    default = "ap-southeast-1"
+  default = "ap-southeast-1"
 }
 variable "vpc_name" {
   type = string
@@ -28,10 +28,4 @@ variable "ami" {
 }
 variable "instance_type" {
   type = string
-}
-# Variables for ECR module
-# Variables for secrets module
-variable "django_secret_key" {
-	type = string
-	sensitive = true
 }

@@ -11,6 +11,7 @@ resource "aws_ecs_task_definition" "backend" {
   cpu                      = 1024
   memory                   = 3072
   execution_role_arn       = var.execution_role_arn
+  task_role_arn            = var.task_role_arn
 
   container_definitions = jsonencode([
     {
@@ -58,7 +59,7 @@ resource "aws_ecs_task_definition" "backend" {
         },
         {
           name      = "DB_PASSWORD"
-          valueFrom = "${var.db_master_user_secret_arn}:password::"
+          valueFrom = "${var.secret_arn}:RDS_PASSWORD::"
         }
       ]
       logConfiguration = {
@@ -81,6 +82,7 @@ resource "aws_ecs_service" "backend" {
   task_definition = aws_ecs_task_definition.backend.arn
   desired_count   = 1
   launch_type     = "FARGATE"
+  enable_execute_command = true
 
   network_configuration {
     subnets          = var.private_subnets

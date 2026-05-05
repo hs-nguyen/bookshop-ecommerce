@@ -1,35 +1,35 @@
 # VPC outputs
 output "vpc_id" {
-    value = module.vpc.vpc_id
+  value = module.vpc.vpc_id
 }
 output "public_subnets" {
-    value = module.vpc.public_subnets
+  value = module.vpc.public_subnets
 }
 output "private_subnets" {
-    value = module.vpc.private_subnets
+  value = module.vpc.private_subnets
 }
 # Security group outputs
 output "fcaj_bookshop_alb_sg_id" {
-    value = module.security.fcaj_bookshop_alb_sg_id
+  value = module.security.fcaj_bookshop_alb_sg_id
 }
 
 output "fcaj_bookshop_ecs_sg_id" {
-    value = module.security.fcaj_bookshop_ecs_sg_id
+  value = module.security.fcaj_bookshop_ecs_sg_id
 }
 
 output "fcaj_bookshop_rds_sg_id" {
-    value = module.security.fcaj_bookshop_rds_sg_id
+  value = module.security.fcaj_bookshop_rds_sg_id
 }
 output "fcaj_bookshop_bastionHost_sg_id" {
   value = module.security.fcaj_bookshop_bastionHost_sg_id
 }
 # RDS outputs
 output "rds_endpoint" {
-    value = module.rds.rds_endpoint
+  value = module.rds.rds_endpoint
 }
 # ALB outputs
 output "alb_dns_name" {
-    value = module.alb.alb_dns_name
+  value = module.alb.alb_dns_name
 }
 output "target_group_arn" {
   value = module.alb.target_group_arn
@@ -40,7 +40,7 @@ output "target_group_arn" {
 # }
 # ECR outputs
 output "repository_url" {
-    value = module.ecr.repository_url
+  value = module.ecr.repository_url
 }
 # Secrets outputs
 output "django_secret_arn" {

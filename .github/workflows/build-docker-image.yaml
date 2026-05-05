@@ -13,47 +13,16 @@ env:
   SERVICE_NAME: fcaj-bookshop-backend-service
 
 jobs:
-  terraform:
-    name: Deploy ECR
-    runs-on: ubuntu-latest
-    permissions:
-      id-token: write
-      contents: read
-    
-    steps:
-    - uses: actions/checkout@v4
-
-    - name: Configure AWS Credentials
-      uses: aws-actions/configure-aws-credentials@v4
-      with:
-        oidc-token: ${{ secrets.AWS_OIDC_TOKEN }}
-        role-to-assume: arn:aws:iam::${{ secrets.AWS_ACCOUNT_ID }}:role/GithubActionsRole
-        aws-region: ${{ env.AWS_REGION }}
-        role-session-name: GithubActionsRole
-    
-    - name: Setup Terraform
-      uses: hashicorp/setup-terraform@v3
-      with: 
-        terraform_version: 1.14.7
-    
-    - name: Terraform Init and Deploy ECR
-      working-directory: ./terraform
-      run: |
-        terraform init
-        terraform apply -target=module.ecr -auto-approve
-        echo "Terraform deploy successfully"
-
-  # build:
-  #   name: Build and Push Dock er Image
+  # terraform:
+  #   name: Deploy ECR
   #   runs-on: ubuntu-latest
   #   permissions:
   #     id-token: write
   #     contents: read
-
-  #   steps:
-  #   - name: checkout code
-  #     uses: actions/checkout@v4
     
+  #   steps:
+  #   - uses: actions/checkout@v4
+
   #   - name: Configure AWS Credentials
   #     uses: aws-actions/configure-aws-credentials@v4
   #     with:
@@ -62,20 +31,51 @@ jobs:
   #       aws-region: ${{ env.AWS_REGION }}
   #       role-session-name: GithubActionsRole
     
-  #   - name: Login to ECR
-  #     id: login-ecr
-  #     uses: aws-actions/amazon-ecr-login@v2
+  #   - name: Setup Terraform
+  #     uses: hashicorp/setup-terraform@v3
+  #     with: 
+  #       terraform_version: 1.14.7
     
-  #   - name: Build docker image
+  #   - name: Terraform Init and Deploy ECR
+  #     working-directory: ./terraform
   #     run: |
-  #       docker build -f backend/Dockerfile -t ${{ env.ECR_REPOSITORY }}:latest ./backend/
+  #       terraform init
+  #       terraform apply -target=module.ecr -auto-approve
+  #       echo "Terraform deploy successfully"
+
+  build:
+    name: Build and Push Dock er Image
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+      contents: read
+
+    steps:
+    - name: checkout code
+      uses: actions/checkout@v4
     
-  #   - name: Tag and push docker image to ECR
-  #     run: |
-  #       docker tag ${{ env.ECR_REPOSITORY }}:latest ${{ env.ECR_REGISTRY }}/${{ env.ECR_REPOSITORY }}:latest
-  #       docker push ${{ env.ECR_REGISTRY }}/${{ env.ECR_REPOSITORY }}:latest
-  #   - name: output success message
-  #     run: echo "Docker image built and pushed to ECR successfully!"
+    - name: Configure AWS Credentials
+      uses: aws-actions/configure-aws-credentials@v4
+      with:
+        oidc-token: ${{ secrets.AWS_OIDC_TOKEN }}
+        role-to-assume: arn:aws:iam::${{ secrets.AWS_ACCOUNT_ID }}:role/GithubActionsRole
+        aws-region: ${{ env.AWS_REGION }}
+        role-session-name: GithubActionsRole
+    
+    - name: Login to ECR
+      id: login-ecr
+      uses: aws-actions/amazon-ecr-login@v2
+    
+    - name: Build docker image
+      run: |
+        docker build -f backend/Dockerfile -t ${{ env.ECR_REPOSITORY }}:latest ./backend/
+    
+    - name: Tag and push docker image to ECR
+      run: |
+        docker tag ${{ env.ECR_REPOSITORY }}:latest ${{ env.ECR_REGISTRY }}/${{ env.ECR_REPOSITORY }}:latest
+        docker push ${{ env.ECR_REGISTRY }}/${{ env.ECR_REPOSITORY }}:latest
+    - name: output success message
+      run: echo "Docker image built and pushed to ECR successfully!"
   
   # deploy:
   #   name: Deploy to ECS Cluster

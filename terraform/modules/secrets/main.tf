@@ -4,8 +4,13 @@
 #   enable_key_rotation     = true
 # }
 
+resource "random_string" "django_secret_key" {
+  length  = 20
+  special = true
+}
+
 resource "aws_secretsmanager_secret" "django" {
-  name       = "development/fcaj/bookshop/secrets"
+  name       = "development1/fcaj/bookshop/secrets"
   # kms_key_id = aws_kms_key.secrets.arn
 }
 
@@ -13,6 +18,7 @@ resource "aws_secretsmanager_secret_version" "django" {
   secret_id = aws_secretsmanager_secret.django.id
 
   secret_string = jsonencode({
-    DJANGO_SECRET_KEY = var.django_secret_key
+    RDS_PASSWORD = var.rds_password
+    DJANGO_SECRET_KEY = random_string.django_secret_key.result
   })
 }

@@ -22,7 +22,10 @@ variable "execution_role_arn" {
   description = "ARN of the ECS task execution IAM role"
   type        = string
 }
-
+variable "task_role_arn" {
+  description = "ARN of the ECS task IAM role"
+  type        = string
+}
 variable "target_group_arn" {
   description = "ARN of the ALB target group"
   type        = string
@@ -42,7 +45,4 @@ variable "cors_allowed_origins" {
   description = "Allowed CORS origins for the backend"
   type        = string
   default     = "http://localhost:3000"
-}
-variable "db_master_user_secret_arn" {
-  type = string
 }

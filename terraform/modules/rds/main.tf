@@ -4,6 +4,11 @@ resource "aws_db_subnet_group" "subnet_group" {
   subnet_ids = var.private_subnets
 }
 
+resource "random_password" "rds_password" {
+  length  = 16
+  special = true
+}
+
 #Define RDS PostgresSQL instance
 # amazonq-ignore-next-line
 resource "aws_db_instance" "rds" {
@@ -13,8 +18,8 @@ resource "aws_db_instance" "rds" {
   engine               = "postgres"
   engine_version       = "17.6"
   instance_class       = "db.t3.micro"
-  manage_master_user_password = true
   username             = "postgres"
+  password             = random_password.rds_password.result
   skip_final_snapshot  = true
   db_subnet_group_name = aws_db_subnet_group.subnet_group.name
   multi_az = true
