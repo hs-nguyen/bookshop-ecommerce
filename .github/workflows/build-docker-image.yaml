@@ -6,7 +6,7 @@ on:
       - main
 env: 
   AWS_REGION: ap-southeast-1
-  ECR_REPOSITORY: fcaj-bookshop-ecr
+  ECR_REPOSITORY: fcaj-bookshop-ecr-prod
   ECR_REGISTRY: ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.ap-southeast-1.amazonaws.com
   AWS_ACCOUNT_ID: ${{ secrets.AWS_ACCOUNT_ID }}
   TASK_FAMILY: fcaj-bookshop-backend-task
