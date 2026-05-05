@@ -1,0 +1,47 @@
+
+name: Run DB migration
+
+on:
+  push:
+    branches:
+      - main
+  
+env:
+  AWS_REGION: ap-southeast-1
+  CLUSTER: fcaj-bookshop-ecs-cluster
+  TASK_FAMILY: fcaj-bookshop-db-migration-task
+
+jobs:
+  run-db-migration:
+    name: Run DB migration
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+      contents: read 
+    
+    steps:
+    - name: checkout code
+      uses: actions/checkout@v4
+    
+    - name: Configure AWS Credentials
+      uses: aws-actions/configure-aws-credentials@v4
+      with:
+        oidc-token: ${{ secrets.AWS_OIDC_TOKEN }}
+        role-to-assume: arn:aws:iam::${{ secrets.AWS_ACCOUNT_ID }}:role/GithubActionsRole
+        aws-region: ${{ env.AWS_REGION }}
+        role-session-name: GithubActionsRole
+    - name: Run DB migration task
+      run: |
+        TASK_ARN=$(aws ecs run-task \
+          --cluster $CLUSTER \
+          --task-definition $TASK_FAMILY \
+          --count 1 \
+          --launch-type FARGATE \
+          --network-configuration "awsvpcConfiguration={subnets=[subnet-08ccb8d7287d65323,subnet-0fa0be1186c2874f8],securityGroups=[sg-05d08e06c80d355e6],assignPublicIp=DISABLED}" \
+          --query 'tasks[0].taskArn' --output text)
+
+        aws ecs wait tasks-stopped --cluster $CLUSTER --tasks $TASK_FAMILY
+
+        EXIT=$(aws ecs describe-tasks --cluster $CLUSTER --tasks $TASK_FAMILY\
+        --query 'tasks[0].containers[0].exitCode' --output text)
+        [ "$EXIT" = "0" ] || exit 1

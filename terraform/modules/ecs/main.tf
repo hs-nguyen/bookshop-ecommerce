@@ -75,6 +75,58 @@ resource "aws_ecs_task_definition" "backend" {
   ])
 }
 
+resource "aws_ecs_task_definition" "db_migration" {
+  family                   = "fcaj-bookshop-db-migration-task"
+  network_mode             = "awsvpc"
+  requires_compatibilities = ["FARGATE"]
+  cpu                      = 256
+  memory                   = 512
+  execution_role_arn       = var.execution_role_arn
+  task_role_arn            = var.task_role_arn
+
+  container_definitions = jsonencode([
+    {
+      name      = "db-migration"
+      image     = "${var.ecr_repository_url}:latest"
+      essential = true
+      command   = ["python", "manage.py", "migrate", "--noinput"]
+      environment = [
+        {
+          name  = "DB_URL"
+          value = var.rds_endpoint
+        },
+        {
+          name  = "DB_NAME"
+          value = "dev"
+        },
+        {
+          name  = "DJANGO_SETTINGS_MODULE"
+          value = "bookshop.settings"
+        }
+      ]
+      secrets = [
+        {
+          name      = "DJANGO_SECRET_KEY"
+          valueFrom = "${var.secret_arn}:DJANGO_SECRET_KEY::"
+        },
+        {
+          name      = "DB_PASSWORD"
+          valueFrom = "${var.secret_arn}:RDS_PASSWORD::"
+        }
+      ]
+      logConfiguration = {
+        logDriver = "awslogs"
+        options = {
+          "awslogs-group"         = "/ecs/db-migration-task",
+          "awslogs-create-group"  = "true",
+          "awslogs-region"        = var.region,
+          "awslogs-stream-prefix" = "migration"
+        }
+      }
+    }
+  ])
+}
+
 # ECS Service
 resource "aws_ecs_service" "backend" {
   name            = "fcaj-bookshop-backend-service"
