@@ -32,7 +32,7 @@ jobs:
         role-session-name: GithubActionsRole
     - name: Run DB migration task
       run: |
-        TASK_ARN=$(aws ecs run-task \
+        TASK_FAMILY=$(aws ecs run-task \
           --cluster $CLUSTER \
           --task-definition $TASK_FAMILY \
           --count 1 \
